@@ -1,0 +1,347 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import styles from '../editdoctors.module.css';
+
+export default function DoctorForm({
+  formData,
+  setFormData,
+  onSubmit,
+  isSubmitting,
+  error,
+  specialties,
+  isEdit = false
+}) {
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
+  const [cepError, setCepError] = useState(null);
+
+  // Bloqueia alteração do CPF em modo de edição
+  useEffect(() => {
+    if (isEdit) {
+      setFormData(prev => ({
+        ...prev,
+        cpf: prev.cpf
+      }));
+    }
+  }, [isEdit, setFormData]);
+
+  // Busca automática do CEP
+  useEffect(() => {
+    const fetchAddress = async () => {
+      const cleanedCep = formData.zipCode.replace(/\D/g, '');
+
+      if (cleanedCep.length === 8) {
+        setIsFetchingCep(true);
+        setCepError(null);
+
+        try {
+          const response = await fetch(`https://localhost:7236/ZipCode?zipCode=${cleanedCep}`);
+          const addressData = await response.json();
+
+          setFormData(prev => ({
+            ...prev,
+            street: addressData.street || prev.street,
+            city: addressData.city || prev.city,
+            state: addressData.state || prev.state
+          }));
+        } catch (err) {
+          setCepError('CEP não encontrado');
+          setFormData(prev => ({
+            ...prev,
+            street: '',
+            city: '',
+            state: ''
+          }));
+        } finally {
+          setIsFetchingCep(false);
+        }
+      }
+    };
+
+    const timer = setTimeout(fetchAddress, 500);
+    return () => clearTimeout(timer);
+  }, [formData.zipCode, setFormData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Bloqueia alteração do CPF em modo de edição
+    if (isEdit && name === 'cpf') {
+      return;
+    }
+
+    let formattedValue = value;
+
+    if (name === 'cpf' && !isEdit) {
+      formattedValue = value
+        .replace(/\D/g, '')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+        .replace(/(-\d{2})\d+?$/, '$1');
+    } else if (name === 'phone') {
+      formattedValue = value
+        .replace(/\D/g, '')
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    } else if (name === 'zipCode') {
+      formattedValue = value
+        .replace(/\D/g, '')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{3})\d+?$/, '$1');
+    } else if (name === 'crm') {
+      // Formatação do CRM (12345/UF)
+      formattedValue = value
+        .toUpperCase()
+        .replace(/[^A-Z0-9\/]/g, '')
+        .replace(/(\d{5})([A-Z]{2})/, '$1/$2');
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: formattedValue
+    }));
+  };
+
+  return (
+    <div className={styles.formContainer}>
+      <h1 className={styles.title}>Editar Médico</h1>
+
+      {error && (
+        <div className={styles.errorMessage}>
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }} className={styles.form}>
+        <div className={styles.formGrid}>
+          {/* Nome */}
+          <div className={styles.fullWidth}>
+            <label htmlFor="name" className={styles.label}>
+              Nome Completo *
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              className={styles.input}
+            />
+          </div>
+
+          {/* Data de Nascimento */}
+          <div className={styles.field}>
+            <label htmlFor="dateOfBirth" className={styles.label}>
+              Data de Nascimento *
+            </label>
+            <input
+              type="date"
+              id="dateOfBirth"
+              name="dateOfBirth"
+              required
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              className={styles.input}
+            />
+          </div>
+
+          {/* CPF */}
+          <div className={styles.field}>
+            <label htmlFor="cpf" className={styles.label}>
+              CPF *
+            </label>
+            <input
+              type="text"
+              id="cpf"
+              name="cpf"
+              required
+              maxLength={14}
+              value={formData.cpf}
+              onChange={handleChange}
+              placeholder="000.000.000-00"
+              className={styles.input}
+              readOnly={isEdit}
+            />
+          </div>
+
+          {/* Telefone */}
+          <div className={styles.field}>
+            <label htmlFor="phone" className={styles.label}>
+              Telefone *
+            </label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              required
+              maxLength={15}
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="(00) 00000-0000"
+              className={styles.input}
+            />
+          </div>
+
+          {/* Email */}
+          <div className={styles.fullWidth}>
+            <label htmlFor="email" className={styles.label}>
+              Email *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className={styles.input}
+            />
+          </div>
+
+          {/* CEP */}
+          <div className={styles.field}>
+            <label htmlFor="zipCode" className={styles.label}>
+              CEP *
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                id="zipCode"
+                name="zipCode"
+                required
+                maxLength={9}
+                value={formData.zipCode}
+                onChange={handleChange}
+                placeholder="00000-000"
+                className={styles.input}
+              />
+              {isFetchingCep && (
+                <div className={styles.loading}></div>
+              )}
+            </div>
+            {cepError && (
+              <span className={styles.errorText}>{cepError}</span>
+            )}
+          </div>
+
+          {/* Rua */}
+          <div className={styles.fullWidth}>
+            <label htmlFor="street" className={styles.label}>
+              Rua *
+            </label>
+            <input
+              type="text"
+              id="street"
+              name="street"
+              required
+              readOnly
+              value={formData.street}
+              className={styles.readOnlyInput}
+            />
+          </div>
+
+          {/* Cidade */}
+          <div className={styles.field}>
+            <label htmlFor="city" className={styles.label}>
+              Cidade *
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              required
+              readOnly
+              value={formData.city}
+              className={styles.readOnlyInput}
+            />
+          </div>
+
+          {/* Estado */}
+          <div className={styles.field}>
+            <label htmlFor="state" className={styles.label}>
+              Estado *
+            </label>
+            <input
+              type="text"
+              id="state"
+              name="state"
+              required
+              readOnly
+              value={formData.state}
+              className={styles.readOnlyInput}
+            />
+          </div>
+
+          {/* Complemento */}
+          <div className={styles.fullWidth}>
+            <label htmlFor="complement" className={styles.label}>
+              Complemento
+            </label>
+            <input
+              type="text"
+              id="complement"
+              name="complement"
+              value={formData.complement}
+              onChange={handleChange}
+              className={styles.input}
+            />
+          </div>
+
+          {/* Especialidade */}
+          <div className={styles.field}>
+            <label htmlFor="specialty" className={styles.label}>
+              Especialidade *
+            </label>
+            <select
+              id="specialty"
+              name="specialty"
+              required
+              value={formData.specialty}
+              onChange={handleChange}
+              className={styles.input}
+            >
+              {specialties.map(spec => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* CRM */}
+          <div className={styles.field}>
+            <label htmlFor="crm" className={styles.label}>
+              CRM *
+            </label>
+            <input
+              type="text"
+              id="crm"
+              name="crm"
+              required
+              value={formData.crm}
+              onChange={handleChange}
+              placeholder="12345/UF"
+              className={styles.input}
+            />
+          </div>
+        </div>
+
+        <div className={styles.submitButtonContainer}>
+          <button
+            type="submit"
+            disabled={isSubmitting || isFetchingCep || cepError}
+            className={styles.submitButton}
+          >
+            {isSubmitting ? 'Atualizando...' : 'Atualizar Médico'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

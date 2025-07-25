@@ -1,0 +1,340 @@
+
+
+.container {
+  min-height: 100vh;
+  padding: 1rem;
+  width: 100%;/* ou a largura máxima desejada */
+  margin: 0 auto;
+  background-color: #f0f2f5;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Adicionado para contexto de posicionamento */
+}
+
+.title {
+  color: #2c3e50;
+  margin: 1rem 0;
+  font-weight: 700;
+  font-size: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-start; /* Alinha o botão à esquerda */
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.addButton {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s;
+  display: inline-block; /* Garante que o botão só ocupe o espaço necessário */
+  width: auto; /* Sobrescreve qualquer width que possa ter sido herdado */
+  max-width: 100%; /* Garante responsividade */
+}
+
+.addButton:hover {
+  background-color: #546b8e;
+}
+
+.patientTable {
+  width: 100%;
+  min-width: 900px; /* Largura mínima para manter a estrutura */
+  border-collapse: collapse;
+}
+
+.patientTableHeader {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+}
+
+.patientTableHeader th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  position: sticky;
+  left: 0;
+}
+
+.patientTableCell {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f2f5;
+  color: #495057;
+  vertical-align: top;
+}
+
+.patientTableRow:hover {
+  background-color: #f8fafc;
+}
+
+.editBtn {
+  background-color: #3498db;
+  color: white;
+  margin-bottom: 1rem;
+  margin-right: 1rem;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.editBtn:hover {
+  background-color: #2980b9;
+}
+
+.deleteBtn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  margin-bottom: 1rem;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.deleteBtn:hover {
+  background-color: #c0392b;
+}
+
+/* Estilos para a paginação */
+.paginationControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 10px 0;
+  border-top: 1px solid #b0aeae;
+  border-bottom: 1px solid #b0aeae;
+}
+
+.paginationControlsFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 10px 0;
+  border-top: 1px solid #b0aeae;
+  border-bottom: 1px solid #b0aeae;
+  width: 100%;
+}
+
+.pageSizeSelector {
+  display: flex;
+  color: #100f0f;
+  align-items: center;
+  gap: 10px;
+}
+
+.pageSizeSelect {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #242121;
+}
+
+.pageNavigation {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.pageButton {
+  padding: 5px 10px;
+  background-color: #4a4242;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.pageInfo {
+  font-size: 0.9rem;
+}
+
+.totalRecords {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Estilos para celular */
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .title {
+    font-size: 1.3rem;
+    margin: 0.5rem 0;
+  }
+  
+  .patientTableHeader,
+  .patientTableCell {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+  
+  /* Garante que o ID não ocupe muito espaço */
+  .idCell {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Ajusta os botões */
+  .actionsCell {
+    display: flex;
+    gap: 6px;
+  }
+  
+  .editBtn, .deleteBtn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+
+  .paginationControlsFooter {
+    position: static;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Estilos para telas muito pequenas (menos de 480px) */
+@media (max-width: 480px) {
+  .patientTableHeader,
+  .patientTableCell {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .editBtn, .deleteBtn {
+    padding: 4px 6px;
+    font-size: 0.7rem;
+    min-width: 50px;
+  }
+
+  .paginationControlsFooter {
+    position: static;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Melhoria para campos longos */
+.longText {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Tooltip para campos truncados */
+.tooltipCell {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltipCell:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.longText {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Efeito visual para indicar que a tabela é rolável */
+.tableContainer {
+  scrollbar-width: thin;
+  scrollbar-color: #4a6fa5 #f0f2f5;
+}
+
+.tableContainer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tableContainer::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 10px;
+}
+
+.tableContainer::-webkit-scrollbar-thumb {
+  background-color: #4a6fa5;
+  border-radius: 10px;
+}
+
+/* Classes adicionais específicas para médicos */
+.nameHighlight {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.hasTooltip {
+  position: relative;
+}
+
+.hasTooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 8px;
+}
