@@ -8,6 +8,7 @@ export default function CreateAppointment() {
     const router = useRouter();
     const [step, setStep] = useState(1); // 1 = Selecionar serviço, 2 = Agendar consulta
     const [services, setServices] = useState([]);
+
     const [selectedService, setSelectedService] = useState(null);
     const [newService, setNewService] = useState({
         name: '',
@@ -26,6 +27,10 @@ export default function CreateAppointment() {
     });
     const [patients, setPatients] = useState([]);
     const [doctors, setDoctors] = useState([]);
+    const [filterDate, setFilterDate] = useState('');
+    const [filteredConsults, setFilteredConsults] = useState([]);
+    const [showFilteredResults, setShowFilteredResults] = useState(false);
+
     const [loading, setLoading] = useState(false);
 
     // Carrega dados iniciais
@@ -204,11 +209,118 @@ export default function CreateAppointment() {
             alert('Falha ao excluir serviço');
         }
     };
+
+    const fetchConsultsByDate = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('jwtToken');
+
+            const userDate = new Date(filterDate);
+            const timezoneOffset = userDate.getTimezoneOffset() * 60000;
+            const correctedDate = new Date(userDate.getTime() + timezoneOffset);
+            const formattedDate = correctedDate.toISOString().split('T')[0];
+
+            const response = await fetch(`https://localhost:7236/Consult/Get-date?date=${formattedDate}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFilteredConsults(data.data || data); // Ajuste conforme a estrutura da resposta
+                setShowFilteredResults(true);
+            } else {
+                console.error('Erro ao buscar consultas');
+                alert('Erro ao buscar consultas para esta data');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro na conexão com o servidor');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Formata data para DD/MM/YYYY
+    const formatarDataBrasileira = (dataString) => {
+        const [year, month, day] = dataString.split('-');
+        return `${day}/${month}/${year}`;
+    };
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>
                 {step === 1 ? 'Selecionar Serviço' : 'Agendar Consulta'}
             </h1>
+            <div className={styles.filterSection}>
+                <h3>Filtrar Consultas por Data</h3>
+                <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className={styles.dateInput}
+                />
+                <button
+                    className={styles.filterButton}
+                    onClick={fetchConsultsByDate}
+                    disabled={!filterDate || loading}
+                >
+                    {loading ? 'Carregando...' : 'Filtrar'}
+                </button>
+
+                {showFilteredResults && (
+                    <div className={styles.consultsList}>
+                        <h4>Consultas em {formatarDataBrasileira(filterDate)}</h4>
+
+                        {filteredConsults.length > 0 ? (
+                            <div className={styles.consultGrid}>
+                                {filteredConsults.map(consult => (
+                                    <div key={consult.id} className={styles.consultCard}>
+                                        <div className={styles.consultHeader}>
+                                            <span className={styles.consultPatient}>Paciente: {consult.namePatient}</span>
+                                            <span className={styles.consultDoctor}>Doutor: {consult.nameDoctor}</span>
+                                        </div>
+
+                                        <div className={styles.consultDetails}>
+                                            <div className={styles.consultDetailItem}>
+                                                <span className={styles.consultDetailLabel}>Data</span>
+                                                <span className={styles.consultDetailValue}>
+                                                    {consult.dateConsult}
+                                                </span>
+                                            </div>
+
+                                            {/* <div className={styles.consultDetailItem}>
+                                                <span className={styles.consultDetailLabel}>Horário</span>
+                                                <span className={styles.consultDetailValue}>
+                                                    {new Date(consult.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div> */}
+
+                                            {/* <div className={styles.consultDetailItem}>
+                                                <span className={styles.consultDetailLabel}>Convênio</span>
+                                                <span className={styles.consultDetailValue}>
+                                                    {consult.convention || 'Particular'}
+                                                </span>
+                                            </div> */}
+
+                                            {/* <div className={styles.consultDetailItem}>
+                                                <span className={styles.consultDetailLabel}>Duração</span>
+                                                <span className={styles.consultDetailValue}>
+                                                    {consult.duration} minutos
+                                                </span>
+                                            </div> */}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className={styles.emptyMessage}>Nenhuma consulta encontrada para esta data.</p>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {step === 1 ? (
                 <div className={styles.serviceSelection}>
@@ -230,15 +342,15 @@ export default function CreateAppointment() {
 
                                 {/* Botão de excluir */}
                                 <div className={styles.deleteButtonWrapper}>
-                                <button
-                                    className={styles.deleteButton}
-                                    onClick={(e) => {
-                                        e.stopPropagation();  // Impede que o clique no botão selecione o card
-                                        handleDeleteService(service.id);
-                                    }}
-                                >
-                                    Excluir
-                                </button>
+                                    <button
+                                        className={styles.deleteButton}
+                                        onClick={(e) => {
+                                            e.stopPropagation();  // Impede que o clique no botão selecione o card
+                                            handleDeleteService(service.id);
+                                        }}
+                                    >
+                                        Excluir
+                                    </button>
                                 </div>
                             </div>
                         ))}
